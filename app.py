@@ -1,12 +1,22 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+import os
 
 # Train model directly from dataset
 def train_model():
-    data = pd.read_csv("data/corrosion_data.csv")
+    # Build a safe path to the CSV file
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.join(base_dir, "data", "corrosion_data.csv")
+
+    # Read the dataset
+    data = pd.read_csv(file_path)
+
+    # Split into features and target
     X = data.drop("corrosion_rate", axis=1)
     y = data["corrosion_rate"]
+
+    # Train the model
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X, y)
     return model
