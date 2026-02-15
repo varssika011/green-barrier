@@ -1,43 +1,36 @@
-import streamlit as st
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
 import os
+import pandas as pd
+import streamlit as st
 
-# Train model directly from dataset
 def train_model():
-    # Build a safe path to the CSV file
-    base_dir = os.path.dirname(__file__)
-    file_path = os.path.join(base_dir, "data", "corrosion_data.csv")
+    file_path = "data.csv"  # change this to your actual filename
 
-    # Read the dataset
+    # Check if file exists
+    if not os.path.exists(file_path):
+        st.error(
+            f"❌ CSV file not found at: {file_path}\n"
+            f"Current working directory: {os.getcwd()}\n"
+            "Make sure the file is included in your repo or placed in the correct folder."
+        )
+        return None
+
+    # Load the data
     data = pd.read_csv(file_path)
 
-    # Split into features and target
-    X = data.drop("corrosion_rate", axis=1)
-    y = data["corrosion_rate"]
-
-    # Train the model
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X, y)
+    # --- your training logic here ---
+    # Example placeholder:
+    model = "trained_model_placeholder"
     return model
 
-# Train once at startup
-model = train_model()
+# Streamlit app entry point
+def main():
+    st.title("Green Barrier App")
 
-# Streamlit UI
-st.title("AI for Corrosion Prevention")
+    model = train_model()
+    if model is not None:
+        st.success("✅ Model trained successfully!")
+    else:
+        st.warning("⚠️ Model training skipped because data file is missing.")
 
-humidity = st.slider("Humidity (%)", 0, 100, 50)
-salinity = st.slider("Salinity (ppm)", 0, 5000, 1000)
-temperature = st.slider("Temperature (°C)", -20, 100, 25)
-pH = st.slider("pH", 0, 14, 7)
-
-if st.button("Predict"):
-    input_data = pd.DataFrame({
-        "humidity": [humidity],
-        "salinity": [salinity],
-        "temperature": [temperature],
-        "pH": [pH]
-    })
-    prediction = model.predict(input_data)[0]
-    st.write("Predicted corrosion rate:", round(prediction, 2))
+if __name__ == "__main__":
+    main()
