@@ -1,44 +1,35 @@
-import os
-import pandas as pd
 import streamlit as st
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
 
-def train_model(file_path):
-    # Check if file exists
-    if not os.path.exists(file_path):
-        st.error(f"CSV file not found at: {file_path}\nCurrent working directory: {os.getcwd()}")
-        return None
+st.title("AI for Corrosion Prevention")
 
-    # Load the data
-    data = pd.read_csv(file_path)
+# Upload CSV
+uploaded_file = st.file_uploader("Upload a CSV file", type="csv")
 
-    # --- your training logic here ---
-    # Example placeholder:
-    model = "trained_model_placeholder"
-    return model
+if uploaded_file is not None:
+    data = pd.read_csv(uploaded_file)
+    st.success("File uploaded successfully!")
 
-def main():
-    st.title("Green Barrier App")
+    # Train model
+    X = data.drop("corrosion_rate", axis=1)
+    y = data["corrosion_rate"]
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X, y)
+    st.success("Model trained successfully with uploaded file!")
 
-    # Use your actual file name
-    default_file = "corrosion_data.csv"
+    # Sliders for input
+    humidity = st.slider("Humidity (%)", 0, 100, 50)
+    salinity = st.slider("Salinity (ppm)", 0, 5000, 1000)
+    temperature = st.slider("Temperature (°C)", -20, 100, 25)
+    pH = st.slider("pH", 0, 14, 7)
 
-    # Allow user to upload a CSV file
-    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
-
-    if uploaded_file is not None:
-        # Read uploaded file directly
-        data = pd.read_csv(uploaded_file)
-        st.success("✅ File uploaded successfully!")
-        # --- training logic with uploaded data ---
-        model = "trained_model_placeholder"
-        st.success("✅ Model trained successfully with uploaded file!")
-    else:
-        # Fall back to bundled file
-        model = train_model(default_file)
-        if model is not None:
-            st.success("✅ Model trained successfully with bundled file!")
-        else:
-            st.warning("⚠️ No data available. Please upload a CSV file.")
-
-if __name__ == "__main__":
-    main()
+    if st.button("Predict"):
+        input_data = pd.DataFrame({
+            "humidity": [humidity],
+            "salinity": [salinity],
+            "temperature": [temperature],
+            "pH": [pH]
+        })
+        prediction = model.predict(input_data)[0]
+        st.write("Predicted corrosion rate:", round(prediction, 2))
