@@ -12,7 +12,7 @@ if uploaded_file is not None:
     st.success("File uploaded successfully!")
 
     # Check for required columns
-    required_columns = {"humidity", "salinity", "temperature", "pH", "corrosion_rate"}
+    required_columns = {"corrosion_rate", "salinity", "pH", "humidity", "temperature"}
     if not required_columns.issubset(data.columns):
         st.error(f"CSV must contain these columns: {required_columns}")
     else:
@@ -23,18 +23,15 @@ if uploaded_file is not None:
         model.fit(X, y)
         st.success("Model trained successfully with uploaded file!")
 
-        # Sliders for input
-        humidity = st.slider("Humidity (%)", 0, 100, 50)
+        # Sliders for input (same order as X.columns)
         salinity = st.slider("Salinity (ppm)", 0, 5000, 1000)
-        temperature = st.slider("Temperature (°C)", -20, 100, 25)
         pH = st.slider("pH", 0, 14, 7)
+        humidity = st.slider("Humidity (%)", 0, 100, 50)
+        temperature = st.slider("Temperature (°C)", -20, 100, 25)
 
         if st.button("Predict"):
-            input_data = pd.DataFrame({
-                "humidity": [humidity],
-                "salinity": [salinity],
-                "temperature": [temperature],
-                "pH": [pH]
-            })
+            # Build input data with same column order as training
+            input_data = pd.DataFrame([[salinity, pH, humidity, temperature]],
+                                      columns=X.columns)
             prediction = model.predict(input_data)[0]
             st.metric("Predicted Corrosion Rate", f"{round(prediction, 2)} mm/year")
